@@ -51,7 +51,7 @@ async function form(req, res) {
   const totalPages = Math.ceil(count / 50);
   const pages = createPages(page, totalPages);
   const limit = 50;
-  const offset = (page - 1) * limit;
+  const offset = (pages.page - 1) * limit;
   const errors = [];
   const formData = {
     name: '',
@@ -88,13 +88,14 @@ async function validate(req, res, next) {
   const valid = validationResult(req);
   if (!valid.isEmpty()) {
     const { errors } = valid;
-    const sig = await getSignatures();
+    const { page = 1 } = req.query;
     const { count } = (await query('SELECT COUNT(*) FROM signatures;')).rows[0];
     const totalPages = Math.ceil(count / 50);
-    const signatures = { list: sig, count };
-    const { page = 1 } = req.query;
     const pages = createPages(page, totalPages);
-
+    const limit = 50;
+    const offset = (pages.page - 1) * limit;
+    const sig = await getSignatures(offset, limit);
+    const signatures = { list: sig, count };
     return res.render('index', {
       title: 'Undir\u00ADskriftar\u00ADlisti',
       formData,

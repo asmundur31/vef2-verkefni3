@@ -27,9 +27,7 @@
       <% }) %>
     </tbody>
   </table>
-  <% } else { %>
-    <p>Engar undiskriftir komnar</p>
-  <% } %>
+
   <div class="pages">
     <% if (pages.previous) { %>
       <a class="pages__previous" href="/?page=<%= pages.page-1 %>">Fyrri síða</a>
@@ -42,5 +40,8 @@
     <% } else { %>
       <p class="pages__next">Næsta síða</p>
     <% } %>
-    
   </div>
+  <% } else { %>
+    <p>Engar undiskriftir komnar</p>
+  <% } %>
+  

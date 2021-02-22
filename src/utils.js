@@ -89,12 +89,13 @@ function checkPage(page, totalPages) {
  * @returns pages object sem inniheldur allar upplýsingar fyrir paging dótið
  */
 export function createPages(page, totalPages) {
-  let p = checkPage(page, totalPages);
+  const p = checkPage(page, totalPages);
   let previous = true;
   let next = true;
   if (p === 1) {
     previous = false;
-  } else if (p === totalPages) {
+  }
+  if (p === totalPages) {
     next = false;
   }
   return {
