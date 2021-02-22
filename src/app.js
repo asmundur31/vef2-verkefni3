@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import passport from './login.js';
 import { router as registrationRouter } from './registration.js';
 import { router as adminRouter } from './admin.js';
+import { isInvalid } from './utils.js';
 
 dotenv.config();
 
@@ -26,6 +27,8 @@ app.use('/public', express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use('/admin', adminRouter);
 app.use('/', registrationRouter);
+
+app.locals.isInvalid = isInvalid;
 
 // eslint-disable-next-line no-unused-vars
 function notFoundHandler(req, res, next) {

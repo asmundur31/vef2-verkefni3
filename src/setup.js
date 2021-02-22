@@ -23,7 +23,12 @@ async function main() {
     const date = new Date();
     date.setDate(date.getDate() - 14 * Math.random());
     const values = [name, nationalId, comment, showName, date];
-    await query('INSERT INTO signatures (name, nationalId, comment, anonymous, signed) VALUES ($1, $2, $3, $4, $5);', values);
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      await query('INSERT INTO signatures (name, nationalId, comment, anonymous, signed) VALUES ($1, $2, $3, $4, $5);', values);
+    } catch (e) {
+      console.log(e);
+    }
   }
 }
 

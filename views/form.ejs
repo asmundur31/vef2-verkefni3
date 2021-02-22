@@ -3,33 +3,35 @@
   <div class="form__row">
     <label class="form__label" for="name">Nafn*:</label>
     <input
-      class="form__input <% if (errorParams.includes('name')) { %> form__input--invalid <% } %>"
-      type="text" name="name" value="<%= name %>">
+      class="form__input <%= locals.isInvalid('name', errors) ?  'form__input--invalid' : '' %>"
+      type="text" name="name" id="name" value="<%= formData.name %>">
   </div>
   <div class="form__row">
     <label class="form__label" for="nationalId">Kennitala*:</label>
     <input
-      class="form__input <% if (errorParams.includes('nationalId')) { %> form__input--invalid <% } %>"
-      type="text" name="nationalId" value="<%= nationalId %>">
+      class="form__input <%= locals.isInvalid('nationalId', errors) ?  'form__input--invalid' : '' %>"
+      type="text" name="nationalId" id="nationalId" value="<%= formData.nationalId %>">
   </div>
   <div class="form__row">
     <label class="form__label" for="comment">Athugasemd:</label>
     <textarea
-      class="form__input <% if (errorParams.includes('comment')) { %> form__input--invalid <% } %>"
-      name="comment" rows="2"><%= comment %></textarea>
+      class="form__input <%= locals.isInvalid('comment', errors) ?  'form__input--invalid' : '' %>"
+      name="comment" id="comment" rows="2"><%= formData.comment %></textarea>
   </div>
   <div class="form__row--checkbox">
-    <input class="form__input--checkbox" type="checkbox" name="showName" <% if (showName) { %> checked<% } %>>
-    <label class="form__label--checkbox" for="showName">Ekki birta nafn á
-      lista</label>
+    <label class="form__label--checkbox" for="anonymous">
+      <input class="form__input--checkbox" type="checkbox" name="anonymous" id="anonymous" <% if (formData.showName === 'on') { %> checked <% } %>>
+        Ekki birta nafn álista
+      </label>
   </div>
-  <%if (errors.length> 0) { %>
+
+  <% if (errors.length> 0) { %>
     <div class="form__errors">
       <h3 class="header header--3">Villur við undirskrift:</h3>
       <ul class="errors">
         <% errors.forEach((error)=> { %>
           <li class="error">
-            <%= error %>
+            <label for="<%= error.param %>"><%= error.msg %></label>
           </li>
         <% }) %>
       </ul>

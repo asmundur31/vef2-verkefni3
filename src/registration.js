@@ -2,7 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import xss from 'xss';
 import { query } from './db.js';
-import { catchErrors, getSignatures } from './utils.js';
+import { catchErrors, getSignatures, createPages } from './utils.js';
 
 export const router = express.Router();
 
@@ -25,6 +25,14 @@ const validation = [
     .withMessage('Athugasemd má að hámarki vera 400 stafir'),
 ];
 
+// Viljum keyra sér og með validation, ver gegn „self XSS“
+const xssSanitizationMiddleware = [
+  body('name').customSanitizer((v) => xss(v)),
+  body('nationalId').customSanitizer((v) => xss(v)),
+  body('comment').customSanitizer((v) => xss(v)),
+  body('anonymous').customSanitizer((v) => xss(v)),
+];
+
 // Listi af hreinsun á gögnum
 const sanitize = [
   body('name').trim().escape(),
@@ -38,19 +46,27 @@ const sanitize = [
  * @param {object} res Response hlutur
  */
 async function form(req, res) {
-  const signatures = await getSignatures();
-  const count = await (await query('SELECT COUNT(*) FROM signatures;')).rows[0].count;
-
-  return res.render('index', {
-    title: 'Undir\u00ADskriftar\u00ADlisti',
+  const { page = 1 } = req.query;
+  const { count } = (await query('SELECT COUNT(*) FROM signatures;')).rows[0];
+  const totalPages = Math.ceil(count / 50);
+  const pages = createPages(page, totalPages);
+  const limit = 50;
+  const offset = (page - 1) * limit;
+  const errors = [];
+  const formData = {
     name: '',
     nationalId: '',
+    anonymous: 'off',
     comment: '',
-    showName: '',
+  };
+  const sig = await getSignatures(offset, limit);
+  const signatures = { list: sig, count };
+  return res.render('index', {
+    title: 'Undir\u00ADskriftar\u00ADlisti',
+    formData,
     signatures,
-    count,
-    errors: [],
-    errorParams: [],
+    errors,
+    pages,
   });
 }
 
@@ -62,28 +78,36 @@ async function form(req, res) {
  * @param {object} next Fallið sem á að keyra næst
  */
 async function validate(req, res, next) {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const errorMessages = errors.array().map((i) => i.msg);
-    const errorParams = errors.array().map((i) => i.param);
-    const signatures = await getSignatures();
+  const {
+    name, nationalId, comment, anonymous,
+  } = req.body;
+  const formData = {
+    name, nationalId, comment, anonymous,
+  };
+
+  const valid = validationResult(req);
+  if (!valid.isEmpty()) {
+    const { errors } = valid;
+    const sig = await getSignatures();
+    const { count } = (await query('SELECT COUNT(*) FROM signatures;')).rows[0];
+    const totalPages = Math.ceil(count / 50);
+    const signatures = { list: sig, count };
+    const { page = 1 } = req.query;
+    const pages = createPages(page, totalPages);
 
     return res.render('index', {
       title: 'Undir\u00ADskriftar\u00ADlisti',
-      name: req.body.name,
-      nationalId: req.body.nationalId,
-      comment: req.body.comment,
-      showName: req.body.showName,
+      formData,
       signatures,
-      errors: errorMessages,
-      errorParams,
+      errors,
+      pages,
     });
   }
   return next();
 }
 
 /**
- * Fall sem að vistar gögnin frá notanda í gagnagrunn og passar uppá að þau eru örugg
+ * Fall sem að vistar gögnin frá notanda í gagnagrunn
  * @param {object} req Request hultur
  * @param {object} res Response hlutur
  */
@@ -93,12 +117,10 @@ async function saveData(req, res) {
   const { nationalId } = data;
   const { comment } = data;
   let anonymous = false;
-  // pössum uppá að showName sé öruggt
-  const showName = xss(data.showName) !== 'on';
+  const showName = data.showName !== 'on';
   if (!showName) {
     anonymous = true;
   }
-  // pössum uppá að gögnin séu örugg þegar við vistum þau, bæði uppá xss og sql injection
   try {
     await query('INSERT INTO signatures (name,nationalId,comment,anonymous) VALUES ($1,$2,$3,$4)', [xss(name), xss(nationalId), xss(comment), anonymous]);
   } catch (e) {
@@ -117,6 +139,7 @@ router.post(
   '/',
   // Validation rules
   validation,
+  xssSanitizationMiddleware,
   // Athugum hvort gögnin uppfylli validation reglur
   catchErrors(validate),
   // Sanitize

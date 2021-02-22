@@ -122,10 +122,6 @@ html {
   }
 }
 
-.errors {
-  margin: 2*$space auto 0 auto;
-}
-
 .line {
   border: 2px dotted $color;
   margin: 3*$space 0 0 0;
@@ -145,10 +141,11 @@ html {
   }
 }
 
+.errors {
+  margin: 2*$space auto 0 auto;
+}
+
 .error {
-  display: flex;
-  flex-wrap: wrap;
-  text-align: center;
 
   &__text {
     margin: 2*$space auto 0 auto;
@@ -160,3 +157,5 @@ html {
     width: 100%;
   }
 }
+
+@import 'pages';
