@@ -18,6 +18,12 @@ pool.on('error', (err) => {
   process.exit(-1);
 });
 
+/**
+ * Fall sem framkvæmir viðeigandi SQL fyrirspurn á gagnagrunn
+ * @param {string} q Srengur sem inniheldur SQL fyrirspurn
+ * @param {list} values listi af parametrum sem eiga að fara inn í fyrirspurnarstrenginn
+ * @returns Skilar því sem að SQL fyrirspurnin skilar eða null ef fyrirspurnin gekk ekki upp
+ */
 export async function query(_query, values = []) {
   const client = await pool.connect();
 

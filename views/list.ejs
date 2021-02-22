@@ -1,2 +1,32 @@
-
-
+<h2 class="header header--2">Undirskriftir</h2>
+<div class="signature_count">
+  Fjöldi undiskrifta: <%= count %>
+</div>
+<% if (signatures.length > 0) { %>
+  <table class="table">
+    <thead>
+      <tr class="table__row">
+        <th class="table__header">Dags</th>
+        <th class="table__header">Nafn</th>
+        <th class="table__header">Athugasemd</th>
+      </tr>
+    </thead>
+    <tbody class="table__body">
+      <% signatures.forEach((signature)=> { %>
+        <tr class="table__row">
+          <td class="table__signed">
+            <%= signature.signed %>
+          </td>
+          <td class="table__name">
+            <%= signature.name %>
+          </td>
+          <td class="table__comment">
+            <%= signature.comment %>
+          </td>
+        </tr>
+        <% }) %>
+    </tbody>
+  </table>
+  <% } else { %>
+    <p>Engar undiskriftir komnar</p>
+    <% } %>

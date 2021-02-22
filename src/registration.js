@@ -1,4 +1,126 @@
 import express from 'express';
+import { body, validationResult } from 'express-validator';
+import xss from 'xss';
+import { query } from './db.js';
+import { catchErrors, getSignatures } from './utils.js';
 
 export const router = express.Router();
 
+// Listi af validations
+const validation = [
+  body('name')
+    .isLength({ min: 1 })
+    .withMessage('Nafn má ekki vera tómt'),
+  body('name')
+    .isLength({ max: 128 })
+    .withMessage('Nafn má að hámarki vera 128 stafir'),
+  body('nationalId')
+    .isLength({ min: 1 })
+    .withMessage('Kennitala má ekki vera tóm'),
+  body('nationalId')
+    .matches(new RegExp('^[0-9]{6}-?[0-9]{4}$'))
+    .withMessage('Kennitala verður að vera á formi 000000-0000 eða 0000000000'),
+  body('comment')
+    .isLength({ max: 400 })
+    .withMessage('Athugasemd má að hámarki vera 400 stafir'),
+];
+
+// Listi af hreinsun á gögnum
+const sanitize = [
+  body('name').trim().escape(),
+  body('nationalId').blacklist('-'),
+  body('comment').trim().escape(),
+];
+
+/**
+ * Fall sem að byrtir töflu af undirskriftum
+ * @param {object} req Request hlutur
+ * @param {object} res Response hlutur
+ */
+async function form(req, res) {
+  const signatures = await getSignatures();
+  const count = await (await query('SELECT COUNT(*) FROM signatures;')).rows[0].count;
+
+  return res.render('index', {
+    title: 'Undir\u00ADskriftar\u00ADlisti',
+    name: '',
+    nationalId: '',
+    comment: '',
+    showName: '',
+    signatures,
+    count,
+    errors: [],
+    errorParams: [],
+  });
+}
+
+/**
+ * Fall sem athugar hvort input frá notanda passi við validation reglur sem við skilgreindum
+ * Höldum keyrslu áfram með next() ef all er í góðu annars birtast villuskilaboð með forminu
+ * @param {object} req Request hlutur
+ * @param {object} res Response hlutur
+ * @param {object} next Fallið sem á að keyra næst
+ */
+async function validate(req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const errorMessages = errors.array().map((i) => i.msg);
+    const errorParams = errors.array().map((i) => i.param);
+    const signatures = await getSignatures();
+
+    return res.render('index', {
+      title: 'Undir\u00ADskriftar\u00ADlisti',
+      name: req.body.name,
+      nationalId: req.body.nationalId,
+      comment: req.body.comment,
+      showName: req.body.showName,
+      signatures,
+      errors: errorMessages,
+      errorParams,
+    });
+  }
+  return next();
+}
+
+/**
+ * Fall sem að vistar gögnin frá notanda í gagnagrunn og passar uppá að þau eru örugg
+ * @param {object} req Request hultur
+ * @param {object} res Response hlutur
+ */
+async function saveData(req, res) {
+  const data = req.body;
+  const { name } = data;
+  const { nationalId } = data;
+  const { comment } = data;
+  let anonymous = false;
+  // pössum uppá að showName sé öruggt
+  const showName = xss(data.showName) !== 'on';
+  if (!showName) {
+    anonymous = true;
+  }
+  // pössum uppá að gögnin séu örugg þegar við vistum þau, bæði uppá xss og sql injection
+  try {
+    await query('INSERT INTO signatures (name,nationalId,comment,anonymous) VALUES ($1,$2,$3,$4)', [xss(name), xss(nationalId), xss(comment), anonymous]);
+  } catch (e) {
+    // Gekk ekki upp að setja inn í gagnagrunn
+    // eslint-disable-next-line no-console
+    console.log(e);
+    return res.render('error', {
+      title: 'Villa',
+    });
+  }
+  return res.redirect('/');
+}
+
+router.get('/', catchErrors(form));
+router.post(
+  '/',
+  // Validation rules
+  validation,
+  // Athugum hvort gögnin uppfylli validation reglur
+  catchErrors(validate),
+  // Sanitize
+  sanitize,
+  // Vistum gögnin í gagnagrunn
+  catchErrors(saveData),
+);

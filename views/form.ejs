@@ -1,3 +1,41 @@
-<form method="post" action="/" enctype="application/x-www-form-urlencoded" class="form form--separated">
-
+<form class="form" method="post" action="/"
+  enctype="application/x-www-form-urlencoded">
+  <div class="form__row">
+    <label class="form__label" for="name">Nafn*:</label>
+    <input
+      class="form__input <% if (errorParams.includes('name')) { %> form__input--invalid <% } %>"
+      type="text" name="name" value="<%= name %>">
+  </div>
+  <div class="form__row">
+    <label class="form__label" for="nationalId">Kennitala*:</label>
+    <input
+      class="form__input <% if (errorParams.includes('nationalId')) { %> form__input--invalid <% } %>"
+      type="text" name="nationalId" value="<%= nationalId %>">
+  </div>
+  <div class="form__row">
+    <label class="form__label" for="comment">Athugasemd:</label>
+    <textarea
+      class="form__input <% if (errorParams.includes('comment')) { %> form__input--invalid <% } %>"
+      name="comment" rows="2"><%= comment %></textarea>
+  </div>
+  <div class="form__row--checkbox">
+    <input class="form__input--checkbox" type="checkbox" name="showName" <% if (showName) { %> checked<% } %>>
+    <label class="form__label--checkbox" for="showName">Ekki birta nafn á
+      lista</label>
+  </div>
+  <%if (errors.length> 0) { %>
+    <div class="form__errors">
+      <h3 class="header header--3">Villur við undirskrift:</h3>
+      <ul class="errors">
+        <% errors.forEach((error)=> { %>
+          <li class="error">
+            <%= error %>
+          </li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+  <button class="form__button">Skrifa undir</button>
 </form>
+
+<hr class="line">

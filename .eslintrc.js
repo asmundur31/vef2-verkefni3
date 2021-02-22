@@ -18,5 +18,7 @@ module.exports = {
 
     // Leyfum console.info, warn og error
     'no-console': ['error', { allow: ['info', 'warn', 'error'] }],
+
+    'no-plusplus': 0,
   },
 };
