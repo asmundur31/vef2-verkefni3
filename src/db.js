@@ -35,4 +35,7 @@ export async function query(_query, values = []) {
   }
 }
 
-// TODO rest af föllum
+// Helper to remove pg from the event loop
+export async function end() {
+  await pool.end();
+}

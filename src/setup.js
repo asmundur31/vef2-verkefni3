@@ -1,7 +1,8 @@
 import { promises } from 'fs';
 import faker from 'faker';
 
-import { query } from './db.js';
+import { query, end } from './db.js';
+import { createUser } from './users.js';
 
 async function main() {
   const createTable = await promises.readFile('./sql/schema.sql');
@@ -27,9 +28,16 @@ async function main() {
       // eslint-disable-next-line no-await-in-loop
       await query('INSERT INTO signatures (name, nationalId, comment, anonymous, signed) VALUES ($1, $2, $3, $4, $5);', values);
     } catch (e) {
+      console.log('Ekki gekk að setja gögn í gagnagrunninn');
       console.log(e);
     }
   }
+  // Setjum inn admin notanda
+  const username = 'admin';
+  const password = '123';
+  const admin = true;
+  await createUser(username, password, admin);
+  await end();
 }
 
 main().catch((err) => {

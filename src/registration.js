@@ -45,11 +45,11 @@ const sanitize = [
  * @param {object} req Request hlutur
  * @param {object} res Response hlutur
  */
-async function form(req, res) {
+async function index(req, res) {
   const { page = 1 } = req.query;
   const { count } = (await query('SELECT COUNT(*) FROM signatures;')).rows[0];
   const totalPages = Math.ceil(count / 50);
-  const pages = createPages(page, totalPages);
+  const pages = createPages(page, totalPages, req.baseUrl);
   const limit = 50;
   const offset = (pages.page - 1) * limit;
   const errors = [];
@@ -67,6 +67,7 @@ async function form(req, res) {
     signatures,
     errors,
     pages,
+    user: [],
   });
 }
 
@@ -91,7 +92,7 @@ async function validate(req, res, next) {
     const { page = 1 } = req.query;
     const { count } = (await query('SELECT COUNT(*) FROM signatures;')).rows[0];
     const totalPages = Math.ceil(count / 50);
-    const pages = createPages(page, totalPages);
+    const pages = createPages(page, totalPages, req.baseUrl);
     const limit = 50;
     const offset = (pages.page - 1) * limit;
     const sig = await getSignatures(offset, limit);
@@ -102,6 +103,7 @@ async function validate(req, res, next) {
       signatures,
       errors,
       pages,
+      user: [],
     });
   }
   return next();
@@ -135,7 +137,7 @@ async function saveData(req, res) {
   return res.redirect('/');
 }
 
-router.get('/', catchErrors(form));
+router.get('/', catchErrors(index));
 router.post(
   '/',
   // Validation rules

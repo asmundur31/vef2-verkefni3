@@ -1,6 +1,8 @@
 import express from 'express';
 import session from 'express-session';
 import dotenv from 'dotenv';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 import passport from './login.js';
 import { router as registrationRouter } from './registration.js';
@@ -22,11 +24,25 @@ if (!connectionString || !sessionSecret) {
 
 const app = express();
 
-app.set('view engine', 'ejs');
-app.use('/public', express.static('public'));
 app.use(express.urlencoded({ extended: true }));
-app.use('/admin', adminRouter);
+
+const path = dirname(fileURLToPath(import.meta.url));
+app.use(express.static(join(path, '../public')));
+app.set('views', join(path, '../views'));
+app.set('view engine', 'ejs');
+
+// Passport mun verða notað með session
+app.use(session({
+  secret: sessionSecret,
+  resave: false,
+  saveUninitialized: false,
+  maxAge: 60 * 1000, // 60 sek
+}));
+// Látum express nota passport með session
+app.use(passport.initialize());
+app.use(passport.session());
 app.use('/', registrationRouter);
+app.use('/admin', adminRouter);
 
 app.locals.isInvalid = isInvalid;
 

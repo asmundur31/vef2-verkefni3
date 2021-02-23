@@ -23,7 +23,7 @@ html {
 
 .signatures {
   margin: 0 auto;
-  max-width: 1600px;
+  max-width: 1000px;
   padding: 0 2*$space;
 }
 
@@ -115,6 +115,15 @@ html {
     transition: background-color 0.5s;
   }
 
+  &__button--delete {
+    font-size: 1em;
+    margin: 0;
+    line-height: 2;
+  }
+
+  &--delete {
+    margin: 0;
+  }
   &__errors {
     display: flex;
     flex-direction: column;
@@ -146,15 +155,17 @@ html {
 }
 
 .error {
-
   &__text {
     margin: 2*$space auto 0 auto;
     width: 100%;
+    text-align: center;
   }
 
   &__link {
+    display: block;
     margin: 2*$space auto 0 auto;
     width: 100%;
+    text-align: center;
   }
 }
 

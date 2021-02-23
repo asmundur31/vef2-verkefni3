@@ -9,6 +9,9 @@
         <th class="table__header">Dags</th>
         <th class="table__header">Nafn</th>
         <th class="table__header">Athugasemd</th>
+        <% if (user.admin) { %>
+          <th class="table__header">Eyða</th>
+        <% } %>
       </tr>
     </thead>
     <tbody class="table__body">
@@ -23,6 +26,13 @@
           <td class="table__comment">
             <%= signature.comment %>
           </td>
+          <% if (user.admin) { %>
+            <td class="table__header">
+              <form class="form form--delete" method="post" action="/admin/delete/<%= signature.id %>">
+                <button class="form__button form__button--delete">Eyða</a>
+              </form>
+            </td>
+          <% } %>
         </tr>
       <% }) %>
     </tbody>
@@ -30,13 +40,13 @@
 
   <div class="pages">
     <% if (pages.previous) { %>
-      <a class="pages__previous" href="/?page=<%= pages.page-1 %>">Fyrri síða</a>
+      <a class="pages__previous" href="<%= pages.prevHref %>">Fyrri síða</a>
     <% } else { %>
       <p class="pages__previous">Fyrri síða</p>
     <% } %>
     <p class="pages__state">Síða <%= pages.page %> af <%= pages.totalPages %></p>
     <% if (pages.next) { %>
-      <a class="pages__next" href="/?page=<%= pages.page+1 %>">Næsta síða</a>
+      <a class="pages__next" href="<%= pages.nextHref %>">Næsta síða</a>
     <% } else { %>
       <p class="pages__next">Næsta síða</p>
     <% } %>

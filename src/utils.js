@@ -55,6 +55,25 @@ export async function getSignatures(offset = 0, limit = 50) {
   return safeRows;
 }
 
+async function getSignature(id) {
+  const q = 'SELECT * FROM signatures WHERE id=$1;';
+  const result = await query(q, [id]);
+  const signature = result.rows[0];
+  return signature;
+}
+
+export async function deleteSignature(id) {
+  const q = 'DELETE FROM signatures WHERE id=$1;';
+  try {
+    await query(q, [id]);
+    return true;
+  } catch (e) {
+    console.log('Ekki gekk að eyða undirskirft úr gagnagrunni');
+    console.log(e);
+  }
+  return false;
+}
+
 /**
  * Hjálparfall til að athuga hvort reitur sé gildur eða ekki.
  *
@@ -88,10 +107,12 @@ function checkPage(page, totalPages) {
  * @param {int} totalPages heildarfjöldi blaðsíðna
  * @returns pages object sem inniheldur allar upplýsingar fyrir paging dótið
  */
-export function createPages(page, totalPages) {
+export function createPages(page, totalPages, href) {
   const p = checkPage(page, totalPages);
   let previous = true;
+  const prevHref = `${href}?page=${p - 1}`;
   let next = true;
+  const nextHref = `${href}?page=${p + 1}`;
   if (p === 1) {
     previous = false;
   }
@@ -99,6 +120,6 @@ export function createPages(page, totalPages) {
     next = false;
   }
   return {
-    page: p, totalPages, previous, next,
+    page: p, totalPages, previous, next, prevHref, nextHref,
   };
 }
