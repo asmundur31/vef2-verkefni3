@@ -1,10 +1,8 @@
 <%- include('header') -%>
 
 <h1 class="header header--1">Undir&shy;skriftar&shy;listi — umsjón</h1>
-<p>Innskráður sem: 
-<% if (user.admin) { %>
-  <strong>Admin</strong>
-<% } %>
+<p>Innskráður sem:
+  <strong><%= user.username %></strong>
 </p>
 <a href="/admin/logout">Útskrá</a>
 
